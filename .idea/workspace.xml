@@ -2,15 +2,12 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="5dc1a9e3-b8ad-48c2-8fc3-fd570994a644" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/compiler.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/copyright/profiles_settings.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/ant_ant_apache_log4j_1_6_2.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/log4j_log4j_1_2_17.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/bag/ConcurrentBag.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/libraries/junit_junit_4_0.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/test/ConcurrentBagTest.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gitignore" afterPath="$PROJECT_DIR$/.gitignore" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/concurrent-bag.iml" afterPath="$PROJECT_DIR$/concurrent-bag.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/bag/Bag.java" afterPath="$PROJECT_DIR$/src/bag/Bag.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/bag/ConcurrentBag.java" afterPath="$PROJECT_DIR$/src/bag/ConcurrentBag.java" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -39,16 +36,40 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="ConcurrentBag.java" pinned="false" current-in-tab="true">
+      <file leaf-file-name="ConcurrentBag.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/bag/ConcurrentBag.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="603">
-              <caret line="48" column="52" selection-start-line="48" selection-start-column="52" selection-end-line="48" selection-end-column="52" />
+            <state relative-caret-position="1158">
+              <caret line="117" column="56" selection-start-line="117" selection-start-column="56" selection-end-line="117" selection-end-column="56" />
               <folding>
                 <element signature="imports" expanded="true" />
-                <element signature="e#879#880#0" expanded="true" />
-                <element signature="e#950#951#0" expanded="true" />
+                <element signature="e#941#942#0" expanded="true" />
+                <element signature="e#1012#1013#0" expanded="true" />
+                <element signature="e#1228#1229#0" expanded="true" />
+                <element signature="e#1280#1281#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="ConcurrentBagTest.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/test/ConcurrentBagTest.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="429">
+              <caret line="39" column="0" selection-start-line="39" selection-start-column="0" selection-end-line="39" selection-end-column="0" />
+              <folding>
+                <element signature="imports" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name=".gitignore" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/.gitignore">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="255">
+              <caret line="15" column="20" selection-start-line="15" selection-start-column="20" selection-end-line="15" selection-end-column="20" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -76,6 +97,10 @@
       <list>
         <option value="$PROJECT_DIR$/src/bag/Bag.java" />
         <option value="$PROJECT_DIR$/src/bag/ConcurrentBag.java" />
+        <option value="$PROJECT_DIR$/log4j.properties" />
+        <option value="$PROJECT_DIR$/src/log4j.properties" />
+        <option value="$PROJECT_DIR$/src/test/ConcurrentBagTest.java" />
+        <option value="$PROJECT_DIR$/.gitignore" />
       </list>
     </option>
   </component>
@@ -152,10 +177,6 @@
               <option name="myItemId" value="src" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="bag" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
           </PATH>
         </subPane>
       </pane>
@@ -173,7 +194,15 @@
     <property name="Repository.Attach.JavaDocs" value="false" />
     <property name="Repository.Attach.Sources" value="false" />
   </component>
-  <component name="RunManager">
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="E:\Dropbox\concurrent-bag\src" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="E:\Dropbox\concurrent-bag" />
+    </key>
+  </component>
+  <component name="RunManager" selected="JUnit.ConcurrentBagTest">
     <configuration default="true" type="#org.jetbrains.idea.devkit.run.PluginConfigurationType" factoryName="Plugin">
       <module name="" />
       <option name="VM_PARAMETERS" value="-Xmx512m -Xms256m -XX:MaxPermSize=250m -ea" />
@@ -419,6 +448,30 @@
       <listeners />
       <method />
     </configuration>
+    <configuration default="false" name="ConcurrentBagTest" type="JUnit" factoryName="JUnit">
+      <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
+      <module name="concurrent-bag" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+      <option name="ALTERNATIVE_JRE_PATH" />
+      <option name="PACKAGE_NAME" value="test" />
+      <option name="MAIN_CLASS_NAME" value="test.ConcurrentBagTest" />
+      <option name="METHOD_NAME" value="" />
+      <option name="TEST_OBJECT" value="class" />
+      <option name="VM_PARAMETERS" value="-ea" />
+      <option name="PARAMETERS" value="" />
+      <option name="WORKING_DIRECTORY" value="file://$MODULE_DIR$" />
+      <option name="ENV_VARIABLES" />
+      <option name="PASS_PARENT_ENVS" value="true" />
+      <option name="TEST_SEARCH_SCOPE">
+        <value defaultName="singleModule" />
+      </option>
+      <envs />
+      <patterns />
+      <method />
+    </configuration>
+    <list size="1">
+      <item index="0" class="java.lang.String" itemvalue="JUnit.ConcurrentBagTest" />
+    </list>
     <configuration default="true" type="AndroidRunConfigurationType" factoryName="Android App">
       <module name="" />
       <option name="DEPLOY" value="true" />
@@ -461,17 +514,50 @@
     </task>
     <servers />
   </component>
+  <component name="TestHistory">
+    <history-entry file="ConcurrentBagTest - 2017.03.26 at 22h 15m 00s.xml">
+      <configuration name="ConcurrentBagTest" configurationId="JUnit" />
+    </history-entry>
+    <history-entry file="ConcurrentBagTest - 2017.03.26 at 22h 15m 17s.xml">
+      <configuration name="ConcurrentBagTest" configurationId="JUnit" />
+    </history-entry>
+    <history-entry file="ConcurrentBagTest - 2017.03.26 at 22h 17m 53s.xml">
+      <configuration name="ConcurrentBagTest" configurationId="JUnit" />
+    </history-entry>
+    <history-entry file="ConcurrentBagTest - 2017.03.26 at 22h 17m 58s.xml">
+      <configuration name="ConcurrentBagTest" configurationId="JUnit" />
+    </history-entry>
+    <history-entry file="ConcurrentBagTest - 2017.03.26 at 22h 19m 01s.xml">
+      <configuration name="ConcurrentBagTest" configurationId="JUnit" />
+    </history-entry>
+    <history-entry file="ConcurrentBagTest - 2017.03.26 at 22h 19m 25s.xml">
+      <configuration name="ConcurrentBagTest" configurationId="JUnit" />
+    </history-entry>
+    <history-entry file="ConcurrentBagTest - 2017.03.26 at 22h 19m 32s.xml">
+      <configuration name="ConcurrentBagTest" configurationId="JUnit" />
+    </history-entry>
+    <history-entry file="ConcurrentBagTest - 2017.03.26 at 22h 19m 55s.xml">
+      <configuration name="ConcurrentBagTest" configurationId="JUnit" />
+    </history-entry>
+    <history-entry file="ConcurrentBagTest - 2017.03.26 at 22h 20m 31s.xml">
+      <configuration name="ConcurrentBagTest" configurationId="JUnit" />
+    </history-entry>
+    <history-entry file="ConcurrentBagTest - 2017.03.26 at 22h 20m 39s.xml">
+      <configuration name="ConcurrentBagTest" configurationId="JUnit" />
+    </history-entry>
+  </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32980973" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
       <window_info id="Palette&#9;" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Capture Analysis" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32980973" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Capture Tool" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
@@ -480,7 +566,7 @@
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="UI Designer" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.39957717" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Nl-Palette" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
@@ -506,8 +592,14 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="XDebuggerManager">
-    <breakpoint-manager />
+    <breakpoint-manager>
+      <option name="time" value="5" />
+    </breakpoint-manager>
     <watches-manager />
+  </component>
+  <component name="antWorkspaceConfiguration">
+    <option name="IS_AUTOSCROLL_TO_SOURCE" value="false" />
+    <option name="FILTER_TARGETS" value="false" />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/src/bag/Bag.java">
@@ -526,15 +618,43 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/log4j.properties">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="153">
+          <caret line="9" column="36" selection-start-line="9" selection-start-column="36" selection-end-line="9" selection-end-column="36" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/bag/ConcurrentBag.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="603">
-          <caret line="48" column="52" selection-start-line="48" selection-start-column="52" selection-end-line="48" selection-end-column="52" />
+        <state relative-caret-position="1158">
+          <caret line="117" column="56" selection-start-line="117" selection-start-column="56" selection-end-line="117" selection-end-column="56" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#879#880#0" expanded="true" />
-            <element signature="e#950#951#0" expanded="true" />
+            <element signature="e#941#942#0" expanded="true" />
+            <element signature="e#1012#1013#0" expanded="true" />
+            <element signature="e#1228#1229#0" expanded="true" />
+            <element signature="e#1280#1281#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/test/ConcurrentBagTest.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="429">
+          <caret line="39" column="0" selection-start-line="39" selection-start-column="0" selection-end-line="39" selection-end-column="0" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.gitignore">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="255">
+          <caret line="15" column="20" selection-start-line="15" selection-start-column="20" selection-end-line="15" selection-end-column="20" />
+          <folding />
         </state>
       </provider>
     </entry>

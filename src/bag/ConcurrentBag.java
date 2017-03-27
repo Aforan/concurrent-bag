@@ -19,16 +19,28 @@ public class ConcurrentBag<T> implements Bag {
     private HashMap<Long, Integer> threadToIndexMap;
     private ReentrantLock registeredThreadLock;
     private LinkedList<LinkedList<T[]>> bagArrayList;
+    private ThreadLocal<ThreadMetaData> localMetadata;
 
     //  Assume mutual exclusion
     private Integer nThreads;
 
-    public class NotRegisteredException extends Exception {
+    public static class NotRegisteredException extends Exception {
         public NotRegisteredException(Long threadId) {
             super(threadId + " is not a registered thread");
         }
     }
 
+    public class ThreadMetaData {
+        public T[] curBlock;
+
+        public int indexInBlock;
+        public int indexInList;
+        public int indexInBag;
+
+        public ThreadMetaData(int indexInBag) {
+            this.indexInBag = indexInBag;
+        }
+    }
 
     public ConcurrentBag() {
         threadToIndexMap = new HashMap<>();
@@ -43,6 +55,27 @@ public class ConcurrentBag<T> implements Bag {
         if(!isRegistered()) {
             throw new NotRegisteredException(Thread.currentThread().getId());
         }
+
+        ThreadMetaData md = localMetadata.get();
+        LinkedList<T[]> subBag = bagArrayList.get(md.indexInBag);
+
+        if(md.curBlock == null || md.indexInBlock == blockSize) {
+            if(md.indexInList < subBag.size()) {
+                //  Another block exists in the list, just increment to it
+                md.curBlock = subBag.get(md.indexInList++);
+                md.indexInBlock = 0;
+            } else {
+                //  No next block, allocate a new one
+                T[] newBlock = (T[]) new Object[blockSize];
+                md.curBlock = newBlock;
+                subBag.add(newBlock);
+                md.indexInBlock = 0;
+                md.indexInList = subBag.size() - 1;
+            }
+        }
+
+        //  Insert the item
+        md.curBlock[md.indexInBlock++] = (T)item;
     }
 
     @Override
@@ -82,6 +115,13 @@ public class ConcurrentBag<T> implements Bag {
                 return false;
             } else {
                 threadToIndexMap.put(threadId, nThreads++);
+                bagArrayList.add(new LinkedList<T[]>());
+
+                //  Create the local metadata for this thread
+                ThreadMetaData md = new ThreadMetaData(nThreads-1);
+                localMetadata = new ThreadLocal<>();
+                localMetadata.set(md);
+
                 logger.debug("Thread " + threadId + " registered successfully");
                 return true;
             }
