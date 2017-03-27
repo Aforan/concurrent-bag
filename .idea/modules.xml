@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/concurrent-bag.iml" filepath="$PROJECT_DIR$/concurrent-bag.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/concurrent-bag.iml" filepath="$PROJECT_DIR$/.idea/concurrent-bag.iml" />
     </modules>
   </component>
 </project>
