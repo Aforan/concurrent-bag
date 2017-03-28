@@ -36,4 +36,35 @@ public class ConcurrentBagTest {
             }
         }
     }
+
+    @Test
+    public void removeTest() throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException, NullPointerException {
+        ConcurrentBag<Integer> bag = new ConcurrentBag<>();
+        bag.registerThread();
+
+        Field mdField = Class.forName("bag.ConcurrentBag").getDeclaredField("localMetadata");
+        mdField.setAccessible(true);
+        ThreadMetaData md = (ThreadMetaData) ((ThreadLocal)mdField.get(bag)).get();
+
+        for(int i = 0; i < 1023; i++) {
+            try {
+                bag.add(i);
+            } catch (ConcurrentBag.NotRegisteredException e) {
+                e.printStackTrace();
+            }
+        }
+        assertEquals(0, md.indexInList);
+        assertEquals(1023, md.indexInBlock);
+
+        for(int i = 0; i < 4; i++) {
+            try {
+                bag.add(i);
+            } catch (ConcurrentBag.NotRegisteredException e) {
+                e.printStackTrace();
+            }
+        }
+
+        assertEquals(1, md.indexInList);
+        assertEquals(3, md.indexInBlock);
+    }
 }

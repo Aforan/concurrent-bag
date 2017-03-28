@@ -36,6 +36,8 @@ public class ConcurrentBag<T> implements Bag {
         public int indexInBlock;
         public int indexInList;
         public int indexInBag;
+        public int stealFromListIndex;
+        public int stealFromBlockIndex;
 
         public ThreadMetaData(int indexInBag) {
             this.indexInBag = indexInBag;
@@ -84,7 +86,32 @@ public class ConcurrentBag<T> implements Bag {
             throw new NotRegisteredException(Thread.currentThread().getId());
         }
 
-        return null;
+        ThreadMetaData md = localMetadata.get();
+        LinkedList<T[]> subBag = bagArrayList.get(md.indexInBag);
+
+        while (0 != 1) {
+            // no more items to remove in this block, so attempt to remove from an earlier block if it exists
+            if (md.indexInBlock <= 0) {
+                // first block in the list, so there's nothing else to remove
+                if (md.indexInList == 0) {
+                    logger.info("Thread " + md.indexInBag + " is empty, attempting to steal from other lists");
+                    // add steal() here;
+                    return null;
+                } else {
+                    md.indexInList--;
+                    md.indexInBlock = blockSize;
+                }
+            }
+
+            md.curBlock = subBag.get(md.indexInList);
+            T item = md.curBlock[md.indexInBlock - 1];
+
+            if (item != null) {
+                return item;
+            } else {
+                md.indexInBlock--;
+            }
+        }
     }
 
     /**
