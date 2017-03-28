@@ -46,19 +46,19 @@ public class ConcurrentBagTest {
         mdField.setAccessible(true);
         ThreadMetaData md = (ThreadMetaData) ((ThreadLocal)mdField.get(bag)).get();
 
-        for(int i = 0; i < 1023; i++) {
+        for(int i = 0; i < 1030; i++) {
             try {
                 bag.add(i);
             } catch (ConcurrentBag.NotRegisteredException e) {
                 e.printStackTrace();
             }
         }
-        assertEquals(0, md.indexInList);
-        assertEquals(1023, md.indexInBlock);
+        assertEquals(1, md.indexInList);
+        assertEquals(6, md.indexInBlock);
 
-        for(int i = 0; i < 4; i++) {
+        for(int i = 0; i < 3; i++) {
             try {
-                bag.add(i);
+                bag.remove();
             } catch (ConcurrentBag.NotRegisteredException e) {
                 e.printStackTrace();
             }

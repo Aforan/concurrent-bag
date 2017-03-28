@@ -62,7 +62,7 @@ public class ConcurrentBag<T> implements Bag {
         LinkedList<T[]> subBag = bagArrayList.get(md.indexInBag);
 
         if(md.curBlock == null || md.indexInBlock == blockSize) {
-            if(md.indexInList < subBag.size()) {
+            if(md.indexInList < subBag.size() - 1) {
                 //  Another block exists in the list, just increment to it
                 md.curBlock = subBag.get(md.indexInList++);
                 md.indexInBlock = 0;
@@ -89,6 +89,8 @@ public class ConcurrentBag<T> implements Bag {
         ThreadMetaData md = localMetadata.get();
         LinkedList<T[]> subBag = bagArrayList.get(md.indexInBag);
 
+        System.out.println(subBag.size());
+
         while (0 != 1) {
             // no more items to remove in this block, so attempt to remove from an earlier block if it exists
             if (md.indexInBlock <= 0) {
@@ -98,15 +100,16 @@ public class ConcurrentBag<T> implements Bag {
                     // add steal() here;
                     return null;
                 } else {
-                    md.indexInList--;
+                    md.curBlock = subBag.get(md.indexInList--);
                     md.indexInBlock = blockSize;
                 }
             }
 
-            md.curBlock = subBag.get(md.indexInList);
             T item = md.curBlock[md.indexInBlock - 1];
 
             if (item != null) {
+                // once this is concurrent, this line can be removed as another thread will perform this step
+                md.indexInBlock--;
                 return item;
             } else {
                 md.indexInBlock--;
