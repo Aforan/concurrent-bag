@@ -88,9 +88,7 @@ public class ConcurrentBag<T> implements Bag {
 
         ThreadMetaData md = localMetadata.get();
         LinkedList<T[]> subBag = bagArrayList.get(md.indexInBag);
-
-        System.out.println(subBag.size());
-
+        
         while (0 != 1) {
             // no more items to remove in this block, so attempt to remove from an earlier block if it exists
             if (md.indexInBlock <= 0) {
