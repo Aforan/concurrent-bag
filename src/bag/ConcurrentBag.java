@@ -122,8 +122,6 @@ public class ConcurrentBag<T> implements Bag {
                     return item;
                 }
             }
-
-
         }
     }
 
@@ -228,22 +226,23 @@ public class ConcurrentBag<T> implements Bag {
             md.stealFromBlockIndex = 0;
 
             stealBlock = nextStealBlock();
-        }
+        } else {
+            //  End of block
+            if(md.stealFromBlockIndex == blockSize) {
+                //  End of list
+                if(md.stealFromListIndex >= bagArrayList.get(md.stealFromBagIndex).size()) {
+                    stealBlock = nextStealBlock();
+                } else {
+                    md.stealFromListIndex++;
+                    stealBlock = bagArrayList.get(md.stealFromBagIndex).get(md.stealFromListIndex);
+                }
 
-        //  End of block
-        if(md.stealFromBlockIndex == blockSize) {
-            //  End of list
-            if(md.stealFromListIndex >= bagArrayList.get(md.stealFromBagIndex).size()) {
-                stealBlock = nextStealBlock();
+                md.stealFromBlockIndex = 0;
             } else {
-                md.stealFromListIndex++;
                 stealBlock = bagArrayList.get(md.stealFromBagIndex).get(md.stealFromListIndex);
             }
-
-            md.stealFromBlockIndex = 0;
-        } else {
-            stealBlock = bagArrayList.get(md.stealFromBagIndex).get(md.stealFromListIndex);
         }
+
 
         T item = stealBlock.get(md.stealFromBlockIndex);
         return item;
