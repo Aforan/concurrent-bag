@@ -4,7 +4,9 @@ import org.apache.log4j.Logger;
 
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -21,7 +23,7 @@ public class ConcurrentBag<T> implements Bag {
 
     private ReentrantLock registeredThreadLock;
     private ThreadLocal<ThreadMetaData> localMetadata;
-    private LinkedList<LinkedList<AtomicReference<T>[]>> bagArrayList;
+    private LinkedList<LinkedList<AtomicReferenceArray<T>>> bagArrayList;
 
     //  Assume mutual exclusion
     private Integer nThreads;
@@ -39,7 +41,7 @@ public class ConcurrentBag<T> implements Bag {
     }
 
     public class ThreadMetaData {
-        public AtomicReference<T>[] curBlock;
+        public AtomicReferenceArray<T> curBlock;
 
         public int indexInBlock;
         public int indexInList;
@@ -69,7 +71,7 @@ public class ConcurrentBag<T> implements Bag {
         }
 
         ThreadMetaData md = localMetadata.get();
-        LinkedList<AtomicReference<T>[]> subBag = bagArrayList.get(md.indexInBag);
+        LinkedList<AtomicReferenceArray<T>> subBag = bagArrayList.get(md.indexInBag);
 
         if(md.curBlock == null || md.indexInBlock == blockSize) {
             if(md.indexInList < subBag.size() - 1) {
@@ -78,7 +80,9 @@ public class ConcurrentBag<T> implements Bag {
                 md.indexInBlock = 0;
             } else {
                 //  No next block, allocate a new one
-                AtomicReference<T>[] newBlock = (AtomicReference<T>[]) new Object[blockSize];
+                List[] t = new List[5];
+                AtomicReferenceArray<T> newBlock = new AtomicReferenceArray<>(blockSize);
+
                 md.curBlock = newBlock;
                 subBag.add(newBlock);
                 md.indexInBlock = 0;
@@ -87,7 +91,7 @@ public class ConcurrentBag<T> implements Bag {
         }
 
         //  Insert the item
-        md.curBlock[md.indexInBlock++].set((T) item);
+        md.curBlock.set(md.indexInBlock++, (T) item);
     }
 
     @Override
@@ -97,7 +101,7 @@ public class ConcurrentBag<T> implements Bag {
         }
 
         ThreadMetaData md = localMetadata.get();
-        LinkedList<AtomicReference<T>[]> subBag = bagArrayList.get(md.indexInBag);
+        LinkedList<AtomicReferenceArray<T>> subBag = bagArrayList.get(md.indexInBag);
         
         while (0 != 1) {
             // no more items to remove in this block, so attempt to remove from an earlier block if it exists
@@ -112,18 +116,14 @@ public class ConcurrentBag<T> implements Bag {
                 }
             }
 
-            AtomicReference<T> itemRef = md.curBlock[md.indexInBlock - 1];
-
-            if (itemRef != null) {
-                T item = itemRef.get();
-                if(item != null) {
-                    if(itemRef.compareAndSet(item, null)) {
-                        return item;
-                    }
+            T item = md.curBlock.get(--md.indexInBlock);
+            if(item != null) {
+                if(md.curBlock.compareAndSet(md.indexInBlock, item, null)) {
+                    return item;
                 }
             }
 
-            md.indexInBlock--;
+
         }
     }
 
@@ -187,7 +187,7 @@ public class ConcurrentBag<T> implements Bag {
         }
     }
 
-    private AtomicReference<T>[] nextStealBlock() throws CannotStealException {
+    private AtomicReferenceArray<T> nextStealBlock() throws CannotStealException {
         ThreadMetaData md = localMetadata.get();
 
         //  Find the next list to steal from.
@@ -210,9 +210,9 @@ public class ConcurrentBag<T> implements Bag {
         return bagArrayList.get(md.stealFromBagIndex).get(md.stealFromListIndex);
     }
 
-    private AtomicReference<T> nextStealItem() throws CannotStealException {
+    private T nextStealItem() throws CannotStealException {
         ThreadMetaData md = localMetadata.get();
-        AtomicReference<T>[] stealBlock = null;
+        AtomicReferenceArray<T> stealBlock = null;
 
         //  This is our first attempt to steal, we try to steal from
         //  the next list, if we are the only thread, throw exception
@@ -245,7 +245,7 @@ public class ConcurrentBag<T> implements Bag {
             stealBlock = bagArrayList.get(md.stealFromBagIndex).get(md.stealFromListIndex);
         }
 
-        AtomicReference<T> item = stealBlock[md.stealFromBlockIndex];
+        T item = stealBlock.get(md.stealFromBlockIndex);
         return item;
     }
 
@@ -256,14 +256,13 @@ public class ConcurrentBag<T> implements Bag {
         while(true) {
             //  Raises exception when only one thread, or all baglists are empty
             //  This does not detect when all nodes are null, will continually re-check
-            AtomicReference<T> itemRef = nextStealItem();
+            T item = nextStealItem();
 
-            if(itemRef != null) {
-                T item = itemRef.get();
-                if(item != null) {
-                    if(itemRef.compareAndSet(item, null)) {
-                        return item;
-                    }
+            if(item != null) {
+                AtomicReferenceArray<T> stealBlock = bagArrayList.get(md.stealFromBagIndex).get(md.stealFromListIndex);
+
+                if (stealBlock.compareAndSet(md.stealFromBlockIndex, item, null)) {
+                    return item;
                 }
             }
 

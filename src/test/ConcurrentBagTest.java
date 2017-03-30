@@ -29,7 +29,7 @@ public class ConcurrentBagTest {
         for(int i = 0; i<2056; i++) {
             try {
                 bag.add(i);
-                assertEquals(md.curBlock[md.indexInBlock-1], i);
+                assertEquals(md.curBlock.get(md.indexInBlock-1), i);
             } catch (ConcurrentBag.NotRegisteredException e) {
                 e.printStackTrace();
                 assertFalse(true);
@@ -38,7 +38,8 @@ public class ConcurrentBagTest {
     }
 
     @Test
-    public void removeTest() throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException, NullPointerException {
+    public void removeTest() throws ClassNotFoundException, NoSuchFieldException,
+                                    IllegalAccessException, NullPointerException {
         ConcurrentBag<Integer> bag = new ConcurrentBag<>();
         bag.registerThread();
 
@@ -59,12 +60,31 @@ public class ConcurrentBagTest {
         for(int i = 0; i < 3; i++) {
             try {
                 bag.remove();
-            } catch (ConcurrentBag.NotRegisteredException e) {
+            } catch (ConcurrentBag.CannotStealException |
+                     ConcurrentBag.NotRegisteredException e) {
                 e.printStackTrace();
             }
         }
 
         assertEquals(1, md.indexInList);
         assertEquals(3, md.indexInBlock);
+
+
+        for(int i = 0; i < 1027; i++) {
+            try {
+                bag.remove();
+            } catch (ConcurrentBag.CannotStealException |
+                    ConcurrentBag.NotRegisteredException e) {
+                e.printStackTrace();
+            }
+        }
+
+        try {
+            bag.remove();
+        } catch (ConcurrentBag.CannotStealException |
+                ConcurrentBag.NotRegisteredException e) {
+            assertTrue(e instanceof ConcurrentBag.CannotStealException);
+        }
+
     }
 }
