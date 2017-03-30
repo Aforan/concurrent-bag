@@ -79,6 +79,7 @@ public class ConcurrentBagTest {
             }
         }
 
+        //  Steal on an empty one-thread bag
         try {
             bag.remove();
         } catch (ConcurrentBag.CannotStealException |

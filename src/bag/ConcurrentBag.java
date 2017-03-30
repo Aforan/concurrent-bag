@@ -111,7 +111,7 @@ public class ConcurrentBag<T> implements Bag {
                     logger.info("Thread " + md.indexInBag + " is empty, attempting to steal from other lists");
                     return steal();
                 } else {
-                    md.curBlock = subBag.get(md.indexInList--);
+                    md.curBlock = subBag.get(--md.indexInList);
                     md.indexInBlock = blockSize;
                 }
             }
