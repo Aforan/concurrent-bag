@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.AtomicReferenceArray;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -21,7 +22,7 @@ public class ConcurrentBag<T> implements Bag {
     //  Assume that modifications cannot be made
     private HashMap<Long, Integer> threadToIndexMap;
 
-    private ReentrantLock registeredThreadLock;
+    private Lock registeredThreadLock;
     private ThreadLocal<ThreadMetaData> localMetadata;
     private LinkedList<LinkedList<AtomicReferenceArray<T>>> bagArrayList;
 
@@ -242,7 +243,6 @@ public class ConcurrentBag<T> implements Bag {
                 stealBlock = bagArrayList.get(md.stealFromBagIndex).get(md.stealFromListIndex);
             }
         }
-
 
         T item = stealBlock.get(md.stealFromBlockIndex);
         return item;
