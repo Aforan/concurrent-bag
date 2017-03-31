@@ -73,12 +73,8 @@ public class ConcurrentBag<T> implements Bag {
 
         ThreadMetaData md = localMetadata.get();
 
-        LinkedList<AtomicReferenceArray<T>> subBag = null;
-        try {
-            subBag = bagArrayList.get(md.indexInBag);
-        } catch (NullPointerException e) {
-            logger.debug(e);
-        }
+        LinkedList<AtomicReferenceArray<T>> subBag = bagArrayList.get(md.indexInBag);
+
         if(md.curBlock == null || md.indexInBlock == blockSize) {
             if(md.indexInList < subBag.size() - 1) {
                 //  Another block exists in the list, just increment to it
@@ -114,7 +110,6 @@ public class ConcurrentBag<T> implements Bag {
             if (md.indexInBlock <= 0) {
                 // first block in the list, so there's nothing else to remove
                 if (md.indexInList == 0) {
-                    logger.info("Thread " + md.indexInBag + " is empty, attempting to steal from other lists");
                     return steal();
                 } else {
                     md.curBlock = subBag.get(--md.indexInList);
@@ -230,15 +225,15 @@ public class ConcurrentBag<T> implements Bag {
             md.stealFromBlockIndex = 0;
 
             stealBlock = nextStealBlock();
+            md.isStealInit = true;
         } else {
             //  End of block
-            if(md.stealFromBlockIndex == blockSize) {
+            if(md.stealFromBlockIndex >= blockSize) {
                 //  End of list
-                if(md.stealFromListIndex >= bagArrayList.get(md.stealFromBagIndex).size()) {
+                if(md.stealFromListIndex >= bagArrayList.get(md.stealFromBagIndex).size()-1) {
                     stealBlock = nextStealBlock();
                 } else {
-                    md.stealFromListIndex++;
-                    stealBlock = bagArrayList.get(md.stealFromBagIndex).get(md.stealFromListIndex);
+                    stealBlock = bagArrayList.get(md.stealFromBagIndex).get(++md.stealFromListIndex);
                 }
 
                 md.stealFromBlockIndex = 0;
@@ -247,7 +242,7 @@ public class ConcurrentBag<T> implements Bag {
             }
         }
 
-        T item = stealBlock.get(md.stealFromBlockIndex);
+        T item = stealBlock.get(md.stealFromBlockIndex++);
         return item;
     }
 
@@ -263,7 +258,7 @@ public class ConcurrentBag<T> implements Bag {
             if(item != null) {
                 AtomicReferenceArray<T> stealBlock = bagArrayList.get(md.stealFromBagIndex).get(md.stealFromListIndex);
 
-                if (stealBlock.compareAndSet(md.stealFromBlockIndex, item, null)) {
+                if (stealBlock.compareAndSet(md.stealFromBlockIndex-1, item, null)) {
                     return item;
                 }
             }

@@ -35,8 +35,7 @@ public class PerformanceTest {
         @Override
         public void run() {
             int operations = totaloperations/nthreads;
-            Random random = new Random(System.currentTimeMillis());
-            boolean isadding = random.nextDouble() < addratio;
+            boolean isadding = threadindex < addratio * nthreads;
 
             //  Synchronize thread registration
             bag.registerThread();
@@ -62,6 +61,9 @@ public class PerformanceTest {
             startTimes[threadindex] = System.currentTimeMillis();
 
             for(int i=1024; i<operations; i++) {
+                int counter = 0;
+                int trigger = isadding ? (int) (1024.0 * addratio) : (int) (1024.0 * (1.0 - addratio));
+
                 try {
                     if(isadding) {
                         bag.add(i);
@@ -69,7 +71,16 @@ public class PerformanceTest {
                         bag.remove();
                     }
 
-                    if(i != 0 && i/100==0) isadding = !isadding;
+                    if(i != 0 && (counter == trigger || counter == 1024)) {
+                        isadding = !isadding;
+
+                        if(counter == 1024) counter = 0;
+                        else counter++;
+
+                    } else {
+                        counter++;
+                    }
+
                 } catch (ConcurrentBag.NotRegisteredException e) {
                     e.printStackTrace();
                     return;
