@@ -33,10 +33,6 @@ public class PerformanceTest {
         ArgumentParser parser = ArgumentParsers.newArgumentParser("ConcurrentBag Performance")
                 .defaultHelp(true);
 
-        parser.addArgument("-t", "--type")
-                .choices("SHA-256", "SHA-512", "SHA1").setDefault("SHA-256")
-                .help("Specify hash function to use");
-
         parser.addArgument("-n", "--nthreads");
         parser.addArgument("-a").help("Add ratio out of 1.0");
         parser.addArgument("-o").help("Number of operations");
@@ -45,9 +41,6 @@ public class PerformanceTest {
 
         try {
             ns = parser.parseArgs(args);
-
-            String c = ns.getString("-t");
-            logger.debug(c);
 
             int nthreads = Integer.parseInt(ns.getString("nthreads"));
             int nOperations = Integer.parseInt(ns.getString("o"));
