@@ -23,7 +23,7 @@ public class ConcurrentBag<T> implements Bag {
     private HashMap<Long, Integer> threadToIndexMap;
 
     private Lock registeredThreadLock;
-    private ThreadLocal<ThreadMetaData> localMetadata;
+    private ThreadLocal<ThreadMetaData> localMetadata = new ThreadLocal<>();
     private LinkedList<LinkedList<AtomicReferenceArray<T>>> bagArrayList;
 
     //  Assume mutual exclusion
@@ -72,8 +72,13 @@ public class ConcurrentBag<T> implements Bag {
         }
 
         ThreadMetaData md = localMetadata.get();
-        LinkedList<AtomicReferenceArray<T>> subBag = bagArrayList.get(md.indexInBag);
 
+        LinkedList<AtomicReferenceArray<T>> subBag = null;
+        try {
+            subBag = bagArrayList.get(md.indexInBag);
+        } catch (NullPointerException e) {
+            logger.debug(e);
+        }
         if(md.curBlock == null || md.indexInBlock == blockSize) {
             if(md.indexInList < subBag.size() - 1) {
                 //  Another block exists in the list, just increment to it
@@ -158,10 +163,8 @@ public class ConcurrentBag<T> implements Bag {
 
                 //  Create the local metadata for this thread
                 ThreadMetaData md = new ThreadMetaData(nThreads-1);
-                localMetadata = new ThreadLocal<>();
                 localMetadata.set(md);
 
-                logger.debug("Thread " + threadId + " registered successfully");
                 return true;
             }
         } finally {
