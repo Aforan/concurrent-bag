@@ -94,7 +94,7 @@ public class ConcurrentBag<T> implements Bag {
         }
 
         //  Insert the item
-        // but first, make sure block isn't logically deleted, but we only care about mark2
+        // but first, make sure block isn't logically deleted, but we only care about mark1
         if (blockRef.compareAndSet(md.curBlock, md.curBlock, false, false, false, false) ||
                 blockRef.compareAndSet(md.curBlock, md.curBlock, false, true, false, true)) {
             md.curBlock.set(md.indexInBlock++, (T) item);
@@ -307,8 +307,7 @@ public class ConcurrentBag<T> implements Bag {
                     // need a "don't care" for expectedMark2 here, so we check again if the first one failed (automatically via "or"
                 }
                 while (stealPrev == null || stealNextRef.compareAndSet(bagArrayList.get(bagIndex).get(listIndex + 1), stealBlock,
-                        true, true, false, true) || stealNextRef.compareAndSet(bagArrayList.get(bagIndex).get(listIndex + 1), stealBlock,
-                        true, false, false, false));
+                        true, true, false, true));
 
                 //                         updateStealPrev();
             } else {
