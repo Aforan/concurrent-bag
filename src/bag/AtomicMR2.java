@@ -55,4 +55,12 @@ public class AtomicMR2<V> {
                 ((newReference == current.reference && newMark1 == current.bit1 && newMark2 == current.bit2) ||
                         atomicRef.compareAndSet(current, new ReferenceBooleanPair<V>(newReference, newMark1, newMark2)));
     }
+
+    public boolean hasMark2() {
+        return atomicRef.get().bit2;
+    }
+
+    public V getReference() {
+        return atomicRef.get().reference;
+    }
 }

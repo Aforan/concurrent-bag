@@ -74,6 +74,7 @@ public class ConcurrentBag<T> implements Bag {
         ThreadMetaData md = localMetadata.get();
 
         LinkedList<AtomicReferenceArray<T>> subBag = bagArrayList.get(md.indexInBag);
+        AtomicMR2<AtomicReferenceArray<T>> blockRef = new AtomicMR2<>(md.curBlock, false, false);
 
         if(md.curBlock == null || md.indexInBlock == blockSize) {
             if(md.indexInList < subBag.size() - 1) {
@@ -93,7 +94,11 @@ public class ConcurrentBag<T> implements Bag {
         }
 
         //  Insert the item
-        md.curBlock.set(md.indexInBlock++, (T) item);
+        // but first, make sure block isn't logically deleted, but we only care about mark2
+        if (blockRef.compareAndSet(md.curBlock, md.curBlock, false, false, false, false) ||
+                blockRef.compareAndSet(md.curBlock, md.curBlock, false, true, false, true)) {
+            md.curBlock.set(md.indexInBlock++, (T) item);
+        }
     }
 
     @Override
@@ -229,6 +234,9 @@ public class ConcurrentBag<T> implements Bag {
         } else {
             //  End of block
             if(md.stealFromBlockIndex >= blockSize) {
+                // attempt to delete this empty block
+                deleteBlock(md.stealFromBagIndex, md.stealFromListIndex, md.curBlock);
+
                 //  End of list
                 if(md.stealFromListIndex >= bagArrayList.get(md.stealFromBagIndex).size()-1) {
                     stealBlock = nextStealBlock();
@@ -268,30 +276,48 @@ public class ConcurrentBag<T> implements Bag {
 
     }
 
-    private AtomicReferenceArray<T> deleteBlock(int index)
-    {
+//    private AtomicReferenceArray<T> deleteBlock(int index)
+    private void deleteBlock(int bagIndex, int listIndex, AtomicReferenceArray<T> stealBlock) {
         ThreadMetaData md = localMetadata.get();
-        AtomicReferenceArray<T> stealBlock = bagArrayList.get(md.stealFromBagIndex).get(index);
+        AtomicReferenceArray<T> stealPrev = bagArrayList.get(bagIndex).get(listIndex);
+        AtomicReferenceArray<T> stealNext = bagArrayList.get(bagIndex).get(listIndex + 2);
+        AtomicReferenceArray<T> stealNextNext = bagArrayList.get(bagIndex).get(listIndex + 3);
 
-        if (index > 0) {
-            AtomicReferenceArray<T> stealPrev = bagArrayList.get(md.stealFromBagIndex).get(index - 1);
+        if (stealPrev != null) {
+            AtomicMR2<AtomicReferenceArray<T>> stealBlockRef = new AtomicMR2<>(stealBlock, false, false);
+            AtomicMR2<AtomicReferenceArray<T>> stealNextRef = new AtomicMR2<>(stealNext, false, false);
+            AtomicMR2<AtomicReferenceArray<T>> stealNextNextRef = new AtomicMR2<>(stealNext, false, false);
 
-            AtomicMR2<AtomicReferenceArray<T>> nextPointerRef
-                    = new AtomicMR2<AtomicReferenceArray<T>>(stealBlock, false, false);
+            if (stealBlockRef.compareAndSet(bagArrayList.get(bagIndex).get(listIndex + 1), stealBlock,
+                    false, false, false, true)) {
+                // set mark1 on stealBlock's reference
+                stealNextRef.compareAndSet(stealNext, stealNext, false, false, true, false);
+                if (stealNextRef.hasMark2()) {
+                    if (stealNextNext != null) {
+                        stealNextNextRef.compareAndSet(stealNextNext, stealNextNext,
+                                false, false, true, false);
+                    }
+                }
 
-            // fill in 
-            if (nextPointerRef.compareAndSet()) {
-                // set mark 1
-                if (0 == 0) { // get mark2
-                // CAS mark1 on stealblock.next.next
+                do {
+                    if (stealBlockRef.getReference() != stealBlock) {
+//                         paper doesn't describe this much, not having this will slightly reduce efficiency, but will not change correctness
+//                         updateStealPrev();
+                    }
+                    // need a "don't care" for expectedMark2 here, so we check again if the first one failed (automatically via "or"
+                }
+                while (stealPrev == null || stealNextRef.compareAndSet(bagArrayList.get(bagIndex).get(listIndex + 1), stealBlock,
+                        true, true, false, true) || stealNextRef.compareAndSet(bagArrayList.get(bagIndex).get(listIndex + 1), stealBlock,
+                        true, false, false, false));
+
+                //                         updateStealPrev();
+            } else {
+                // deleteBlock not performed on this item as it was or has become the first item in the list
+                // at this point we can either update stealBlock to point to to the next block or do nothing
+                // we do nothing as steal() functions will already do the update for us
+                return;
             }
-            while (true) {
-                    // if CAS prev.next, stealblock -> updateStealPrev()
-            }
-        }
-        else {
-            // deleteBlock not performed on first item
-            return stealBlock;
         }
     }
+
 }
