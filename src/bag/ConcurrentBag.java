@@ -267,4 +267,31 @@ public class ConcurrentBag<T> implements Bag {
         }
 
     }
+
+    private AtomicReferenceArray<T> deleteBlock(int index)
+    {
+        ThreadMetaData md = localMetadata.get();
+        AtomicReferenceArray<T> stealBlock = bagArrayList.get(md.stealFromBagIndex).get(index);
+
+        if (index > 0) {
+            AtomicReferenceArray<T> stealPrev = bagArrayList.get(md.stealFromBagIndex).get(index - 1);
+
+            AtomicMR2<AtomicReferenceArray<T>> nextPointerRef
+                    = new AtomicMR2<AtomicReferenceArray<T>>(stealBlock, false, false);
+
+            // fill in 
+            if (nextPointerRef.compareAndSet()) {
+                // set mark 1
+                if (0 == 0) { // get mark2
+                // CAS mark1 on stealblock.next.next
+            }
+            while (true) {
+                    // if CAS prev.next, stealblock -> updateStealPrev()
+            }
+        }
+        else {
+            // deleteBlock not performed on first item
+            return stealBlock;
+        }
+    }
 }
