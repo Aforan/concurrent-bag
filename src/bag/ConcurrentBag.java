@@ -206,6 +206,30 @@ public class ConcurrentBag<T> implements Bag {
         return item;
     }
 
+    /*
+    private void deleteBlock(){
+
+        if(stealPrev != null){
+            if (stealPrev.next.compareAndSet(stealBlock, stealBlock + mark2)){
+                stealBlock.next(mark1) // set mark1 on stealBlock.next using CAS
+                if (stealBlock.next.mark2) { // if stealBlock.next has mark2
+                    stealBlock.next.next(mark1) // set mark on stealBlock.next.next using  CAS
+                }
+                while(!(stealPrev == null || stealPrev.next.compareAndSet(stealBlock + mark2, stealBlock - mark1))){
+                    if (stealPrev.next is not referencing stealBlock){
+                        UpdateStealPrev();
+                    }
+                }
+                stealBlock = nextStealBlock(); //next block in linked list or next list
+            }
+        } else {
+            stealPrev = stealBlock;
+            stealBlock = nextStealBlock();
+        }
+
+    }
+    */
+
     /**
      * @return true when the thread is already registered
      */
