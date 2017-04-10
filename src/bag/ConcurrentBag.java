@@ -5,6 +5,7 @@ import org.apache.log4j.Logger;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicMarkableReference;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.concurrent.locks.Lock;
@@ -74,7 +75,6 @@ public class ConcurrentBag<T> implements Bag {
         ThreadMetaData md = localMetadata.get();
 
         LinkedList<AtomicReferenceArray<T>> subBag = bagArrayList.get(md.indexInBag);
-        AtomicMR2<AtomicReferenceArray<T>> blockRef = new AtomicMR2<>(md.curBlock, false, false);
 
         if(md.curBlock == null || md.indexInBlock == blockSize) {
             if(md.indexInList < subBag.size() - 1) {
@@ -93,10 +93,11 @@ public class ConcurrentBag<T> implements Bag {
             }
         }
 
+//        AtomicMR2<AtomicReferenceArray<T>> blockRef = new AtomicMR2<>(md.curBlock, false, false);
+        AtomicMarkableReference<AtomicReferenceArray<T>> blockRef = new AtomicMarkableReference<>(md.curBlock, false);
         //  Insert the item
         // but first, make sure block isn't logically deleted, but we only care about mark1
-        if (blockRef.compareAndSet(md.curBlock, md.curBlock, false, false, false, false) ||
-                blockRef.compareAndSet(md.curBlock, md.curBlock, false, true, false, true)) {
+        if (blockRef.compareAndSet(md.curBlock, md.curBlock, false, false)) {
             md.curBlock.set(md.indexInBlock++, (T) item);
         }
     }
@@ -304,7 +305,6 @@ public class ConcurrentBag<T> implements Bag {
 //                         paper doesn't describe this much, not having this will slightly reduce efficiency, but will not change correctness
 //                         updateStealPrev();
                     }
-                    // need a "don't care" for expectedMark2 here, so we check again if the first one failed (automatically via "or"
                 }
                 while (stealPrev == null || stealNextRef.compareAndSet(bagArrayList.get(bagIndex).get(listIndex + 1), stealBlock,
                         true, true, false, true));

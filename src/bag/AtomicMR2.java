@@ -56,6 +56,10 @@ public class AtomicMR2<V> {
                         atomicRef.compareAndSet(current, new ReferenceBooleanPair<V>(newReference, newMark1, newMark2)));
     }
 
+    public boolean hasMark1() {
+        return atomicRef.get().bit1;
+    }
+
     public boolean hasMark2() {
         return atomicRef.get().bit2;
     }
