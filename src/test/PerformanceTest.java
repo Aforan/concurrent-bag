@@ -1,10 +1,10 @@
 package test;
 
 import bag.ConcurrentBag;
-import net.sourceforge.argparse4j.ArgumentParsers;
-import net.sourceforge.argparse4j.inf.ArgumentParser;
-import net.sourceforge.argparse4j.inf.ArgumentParserException;
-import net.sourceforge.argparse4j.inf.Namespace;
+//import net.sourceforge.argparse4j.ArgumentParsers;
+//import net.sourceforge.argparse4j.inf.ArgumentParser;
+//import net.sourceforge.argparse4j.inf.ArgumentParserException;
+//import net.sourceforge.argparse4j.inf.Namespace;
 import org.apache.log4j.Logger;
 
 import java.util.LinkedList;
@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Created by rick on 3/30/17.
  */
 public class PerformanceTest {
-    final static Logger logger = Logger.getLogger(PerformanceTest.class);
+//    final static Logger logger = Logger.getLogger(PerformanceTest.class);
 
     private static class TransferQueueTestThread extends Thread {
         private static LinkedTransferQueue<Integer> linkedQueue = new LinkedTransferQueue<>();
@@ -166,7 +166,8 @@ public class PerformanceTest {
                     e.printStackTrace();
                     return;
                 } catch (ConcurrentBag.CannotStealException e) {
-                    logger.debug("Thread " + threadindex + " Cannot Steal Exception");
+                    System.out.println("Thread \" + threadindex + \" Cannot Steal Exception");
+//                    logger.debug("Thread " + threadindex + " Cannot Steal Exception");
                     e.printStackTrace();
                 }
             }
@@ -192,33 +193,36 @@ public class PerformanceTest {
     private static long[] startTimes, endTimes;
 
     public static void main(String[] args) {
-        ArgumentParser parser = ArgumentParsers
-                .newArgumentParser("ConcurrentBag Performance")
-                .defaultHelp(true);
-
-        parser.addArgument("-n").help("Number of threads");
-        parser.addArgument("-a").help("Add ratio out of 1.0");
-        parser.addArgument("-o").help("Number of operations");
-        parser.addArgument("-d").help("Data structure [bag|queue]");
-
-        Namespace ns = null;
+//        ArgumentParser parser = ArgumentParsers
+//                .newArgumentParser("ConcurrentBag Performance")
+//                .defaultHelp(true);
+//
+//        parser.addArgument("-n").help("Number of threads");
+//        parser.addArgument("-a").help("Add ratio out of 1.0");
+//        parser.addArgument("-o").help("Number of operations");
+//        parser.addArgument("-d").help("Data structure [bag|queue]");
+//
+//        Namespace ns = null;
 
         try {
-            ns = parser.parseArgs(args);
+//            ns = parser.parseArgs(args);
 
-            int nthreads = Integer.parseInt(ns.getString("n"));
-            int nOperations = Integer.parseInt(ns.getString("o"));
-            double addRatio = Double.parseDouble(ns.getString("a"));
-            String dataStructure = ns.getString("d");
+            int nthreads = 32;                   // Integer.parseInt(ns.getString("n"));
+            int nOperations = 10000000;         // Integer.parseInt(ns.getString("o"));
+            double addRatio = 1.0;              // Double.parseDouble(ns.getString("a"));
+            String dataStructure = "bag";       // ns.getString("d");
 
             if(addRatio > 1.0 || addRatio < 0.0) {
-                logger.error("Add ratio out of bounds");
+                System.out.println("Add ratio out of bounds");
+//                logger.error("Add ratio out of bounds");
                 return;
             } else if(addRatio <= 0.5) {
-                logger.warn("Add ratio <= 0.5 " + " not recommended");
+                System.out.println("Add ratio <= 0.5 " + " not recommended");
+//                logger.warn("Add ratio <= 0.5 " + " not recommended");
             }
 
-            logger.debug("Beginning test: n=" + nthreads + " o=" + nOperations + " a=" + addRatio + " d=" + dataStructure);
+            System.out.println("Beginning test: n=" + nthreads + " o=" + nOperations + " a=" + addRatio + " d=" + dataStructure);
+//            logger.debug("Beginning test: n=" + nthreads + " o=" + nOperations + " a=" + addRatio + " d=" + dataStructure);
 
             if(dataStructure.equals("bag")) {
                 LinkedList<ConcurrentBagTestThread> testThreads = new LinkedList<>();
@@ -244,7 +248,8 @@ public class PerformanceTest {
                         if(trueEnd == -1 || endTimes[i] > trueEnd) trueEnd = endTimes[i];
 
                     } catch (InterruptedException e) {
-                        logger.debug("Outer Thread Exception in thread join");
+                        System.out.println("Outer Thread Exception in thread join");
+//                        logger.debug("Outer Thread Exception in thread join");
                         e.printStackTrace();
                     }
                 }
@@ -252,9 +257,12 @@ public class PerformanceTest {
                 trueExecutionTime = trueEnd - trueStart;
                 executionTime = System.currentTimeMillis() - executionTime;
 
-                logger.debug("Test Complete");
-                logger.debug("Overall Execution Time: " + executionTime + "ms");
-                logger.debug("True Execution Time: " + trueExecutionTime + "ms");
+                System.out.println("Test Complete");
+                System.out.println("Overall Execution Time: " + executionTime + "ms");
+                System.out.println("True Execution Time: " + trueExecutionTime + "ms");
+//                logger.debug("Test Complete");
+//                logger.debug("Overall Execution Time: " + executionTime + "ms");
+//                logger.debug("True Execution Time: " + trueExecutionTime + "ms");
             } else if(dataStructure.equals("queue")) {
                 LinkedList<ConcurrentQueueTestThread> testThreads = new LinkedList<>();
 
@@ -279,7 +287,8 @@ public class PerformanceTest {
                         if(trueEnd == -1 || endTimes[i] > trueEnd) trueEnd = endTimes[i];
 
                     } catch (InterruptedException e) {
-                        logger.debug("Outer Thread Exception in thread join");
+                        System.out.println("Outer Thread Exception in thread join");
+//                        logger.debug("Outer Thread Exception in thread join");
                         e.printStackTrace();
                     }
                 }
@@ -287,9 +296,12 @@ public class PerformanceTest {
                 trueExecutionTime = trueEnd - trueStart;
                 executionTime = System.currentTimeMillis() - executionTime;
 
-                logger.debug("Test Complete");
-                logger.debug("Overall Execution Time: " + executionTime + "ms");
-                logger.debug("True Execution Time: " + trueExecutionTime + "ms");
+                System.out.println("Test Complete");
+                System.out.println("Overall Execution Time: " + executionTime + "ms");
+                System.out.println("True Execution Time: " + trueExecutionTime + "ms");
+//                logger.debug("Test Complete");
+//                logger.debug("Overall Execution Time: " + executionTime + "ms");
+//                logger.debug("True Execution Time: " + trueExecutionTime + "ms");
             } else if(dataStructure.equals("transfer")) {
                 LinkedList<TransferQueueTestThread> testThreads = new LinkedList<>();
 
@@ -314,7 +326,8 @@ public class PerformanceTest {
                         if(trueEnd == -1 || endTimes[i] > trueEnd) trueEnd = endTimes[i];
 
                     } catch (InterruptedException e) {
-                        logger.debug("Outer Thread Exception in thread join");
+                        System.out.println("Outer Thread Exception in thread join");
+//                        logger.debug("Outer Thread Exception in thread join");
                         e.printStackTrace();
                     }
                 }
@@ -322,15 +335,19 @@ public class PerformanceTest {
                 trueExecutionTime = trueEnd - trueStart;
                 executionTime = System.currentTimeMillis() - executionTime;
 
-                logger.debug("Test Complete");
-                logger.debug("Overall Execution Time: " + executionTime + "ms");
-                logger.debug("True Execution Time: " + trueExecutionTime + "ms");
+                System.out.println("Test Complete");
+                System.out.println("Overall Execution Time: " + executionTime + "ms");
+                System.out.println("True Execution Time: " + trueExecutionTime + "ms");
+//                logger.debug("Test Complete");
+//                logger.debug("Overall Execution Time: " + executionTime + "ms");
+//                logger.debug("True Execution Time: " + trueExecutionTime + "ms");
             } else {
-                logger.error("Invalid datastructure " + dataStructure);
+                System.out.println("Invalid datastructure " + dataStructure);
+//                logger.error("Invalid datastructure " + dataStructure);
             }
 
-        } catch (ArgumentParserException e) {
-            parser.handleError(e);
+        } catch (Exception e){// (ArgumentParserException e) {
+//            parser.handleError(e);
             System.exit(1);
         }
     }
