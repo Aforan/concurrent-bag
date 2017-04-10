@@ -1,6 +1,7 @@
 package test;
 
 import bag.ConcurrentBag;
+import bag.LeakyConcurrentBag;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.ArgumentParserException;
@@ -188,6 +189,93 @@ public class PerformanceTest {
         }
     }
 
+    private static class LeakyConcurrentBagTestThread extends Thread {
+        private static AtomicInteger addCount = new AtomicInteger(0);
+        private static AtomicInteger registrationCount = new AtomicInteger(0);
+
+        private static LeakyConcurrentBag<Integer> bag = new LeakyConcurrentBag<>();
+        private int threadindex, nthreads, totaloperations;
+        private double addratio;
+
+        public LeakyConcurrentBagTestThread(int threadindex, int nthreads, int totaloperations, double addratio) {
+            this.threadindex = threadindex;
+            this.nthreads = nthreads;
+            this.totaloperations = totaloperations;
+            this.addratio = addratio;
+        }
+
+        @Override
+        public void run() {
+            int operations = totaloperations/nthreads;
+            boolean isadding = threadindex < addratio * nthreads;
+
+            //  Synchronize thread registration
+            bag.registerThread();
+            registrationCount.getAndIncrement();
+            while(registrationCount.get() != nthreads);
+
+            //  All threads add some items to start
+            for(int i=0; i<1024; i++) {
+                try {
+                    bag.add(i);
+                } catch (LeakyConcurrentBag.NotRegisteredException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            //  Synchronize addition
+            addCount.getAndIncrement();
+            while(addCount.get() != nthreads);
+
+            startTimes[threadindex] = System.currentTimeMillis();
+
+            for(int i=1024; i<operations; i++) {
+                int counter = 0;
+                int trigger = isadding ? (int) (1024.0 * addratio) : (int) (1024.0 * (1.0 - addratio));
+
+                try {
+                    if(isadding) {
+                        bag.add(i);
+                    } else {
+                        bag.remove();
+                    }
+
+                    if(i != 0 && (counter == trigger || counter == 1024)) {
+                        isadding = !isadding;
+
+                        if(counter == 1024) counter = 0;
+                        else counter++;
+
+                    } else {
+                        counter++;
+                    }
+
+                } catch (LeakyConcurrentBag.NotRegisteredException e) {
+                    e.printStackTrace();
+                    return;
+                } catch (LeakyConcurrentBag.CannotStealException e) {
+                    logger.debug("Thread " + threadindex + " Cannot Steal Exception");
+                    e.printStackTrace();
+                }
+            }
+
+            endTimes[threadindex] = System.currentTimeMillis();
+            //logger.debug("Thread " + threadindex + " finished in " + (endTimes[threadindex] - startTimes[threadindex]) + "ms");
+
+            //  Make sure there are enough elements for removers to remove
+            if(isadding) {
+                for(int i=0; i<1024; i++) {
+                    try {
+                        bag.add(i);
+                    } catch (LeakyConcurrentBag.NotRegisteredException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+        }
+    }
+
     private static long executionTime, trueExecutionTime;
     private static long[] startTimes, endTimes;
 
@@ -225,6 +313,41 @@ public class PerformanceTest {
 
                 for(int i=0;i<nthreads;i++) {
                     testThreads.add(new ConcurrentBagTestThread(i, nthreads, nOperations, addRatio));
+                }
+
+                startTimes = new long[nthreads];
+                endTimes = new long[nthreads];
+                executionTime = System.currentTimeMillis();
+
+                for(int i=0;i<nthreads;i++) {
+                    testThreads.get(i).start();
+                }
+
+                long trueStart = -1, trueEnd = -1;
+                for(int i=0; i<nthreads; i++) {
+                    try {
+                        testThreads.get(i).join();
+
+                        if(trueStart == -1 || startTimes[i] < trueStart) trueStart = startTimes[i];
+                        if(trueEnd == -1 || endTimes[i] > trueEnd) trueEnd = endTimes[i];
+
+                    } catch (InterruptedException e) {
+                        logger.debug("Outer Thread Exception in thread join");
+                        e.printStackTrace();
+                    }
+                }
+
+                trueExecutionTime = trueEnd - trueStart;
+                executionTime = System.currentTimeMillis() - executionTime;
+
+                logger.debug("Test Complete");
+                logger.debug("Overall Execution Time: " + executionTime + "ms");
+                logger.debug("True Execution Time: " + trueExecutionTime + "ms");
+            } else if(dataStructure.equals("leaky")) {
+                LinkedList<LeakyConcurrentBagTestThread> testThreads = new LinkedList<>();
+
+                for(int i=0;i<nthreads;i++) {
+                    testThreads.add(new LeakyConcurrentBagTestThread(i, nthreads, nOperations, addRatio));
                 }
 
                 startTimes = new long[nthreads];

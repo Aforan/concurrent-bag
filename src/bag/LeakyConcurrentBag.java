@@ -5,6 +5,7 @@ import org.apache.log4j.Logger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -12,8 +13,8 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * Created by Andrew on 3/26/2017.
  */
-public class ConcurrentBag<T> implements Bag {
-    final static Logger logger = Logger.getLogger(ConcurrentBag.class);
+public class LeakyConcurrentBag<T> implements Bag {
+    final static Logger logger = Logger.getLogger(LeakyConcurrentBag.class);
 
     public static class NotRegisteredException extends Exception {
         public NotRegisteredException(Long threadId) {
@@ -21,6 +22,16 @@ public class ConcurrentBag<T> implements Bag {
         }
     }
 
+    public static class Block<T> {
+        AtomicReferenceArray<T> blockData;
+        AtomicBoolean deleted;
+
+        public Block() {
+            this.blockData = new AtomicReferenceArray<T>(blockSize);
+            this.deleted = new AtomicBoolean();
+            this.deleted.set(false);
+        }
+    }
     public static class CannotStealException extends Exception {
         public CannotStealException(String msg) {
             super(msg);
@@ -51,12 +62,12 @@ public class ConcurrentBag<T> implements Bag {
     private Lock registeredThreadLock;
     private ThreadLocal<ThreadMetaData> localMetadata = new ThreadLocal<>();
 
-    private LinkedList<ArrayList<AtomicReferenceArray<T>>> bagArrayList;
+    private LinkedList<ArrayList<Block<T>>> bagArrayList;
 
     //  Assume mutual exclusion
     private Integer nThreads;
 
-    public ConcurrentBag() {
+    public LeakyConcurrentBag() {
         threadToIndexMap = new HashMap<>();
         registeredThreadLock = new ReentrantLock();
         bagArrayList = new LinkedList<>();
@@ -71,25 +82,31 @@ public class ConcurrentBag<T> implements Bag {
         }
 
         ThreadMetaData md = localMetadata.get();
-        ArrayList<AtomicReferenceArray<T>> subBag = bagArrayList.get(md.indexInBag);
+        ArrayList<Block<T>> subBag = bagArrayList.get(md.indexInBag);
 
         //  Get the next block
         if(md.curBlock == null || md.indexInBlock == blockSize) {
             if(md.indexInList < subBag.size() - 1) {
                 //  Another block exists in the list, just increment to it
-                md.curBlock = subBag.get(md.indexInList++);
+                Block<T> block = subBag.get(md.indexInList++);
+                md.curBlock = block.blockData;
                 md.indexInBlock = 0;
+
+                //  If this existing block was previously deleted, restore it
+                block.deleted.set(false);
             } else {
                 //  No next block, allocate a new one
-                AtomicReferenceArray<T> newBlock = new AtomicReferenceArray<>(blockSize);
+                Block<T> newBlock = new Block<T>();
 
-                md.curBlock = newBlock;
+                md.curBlock = newBlock.blockData;
                 subBag.add(newBlock);
 
                 md.indexInBlock = 0;
                 md.indexInList = subBag.size() - 1;
             }
         }
+
+        subBag.get(md.indexInList).deleted.set(false);
 
         //  Insert the item
         md.curBlock.set(md.indexInBlock++, (T) item);
@@ -102,7 +119,7 @@ public class ConcurrentBag<T> implements Bag {
         }
 
         ThreadMetaData md = localMetadata.get();
-        ArrayList<AtomicReferenceArray<T>> subBag = bagArrayList.get(md.indexInBag);
+        ArrayList<Block<T>> subBag = bagArrayList.get(md.indexInBag);
         
         while (0 != 1) {
             // no more items to remove in this block, so attempt to remove from an earlier block if it exists
@@ -111,8 +128,11 @@ public class ConcurrentBag<T> implements Bag {
                 if (md.indexInList == 0) {
                     return steal();
                 } else {
-                    md.curBlock = subBag.get(--md.indexInList);
+                    md.curBlock = subBag.get(--md.indexInList).blockData;
                     md.indexInBlock = blockSize;
+
+                    //  Delete the previous block
+                    subBag.get(md.indexInList+1).deleted.set(true);
                 }
             }
 
@@ -135,9 +155,9 @@ public class ConcurrentBag<T> implements Bag {
             T item = nextStealItem();
 
             if(item != null) {
-                AtomicReferenceArray<T> stealBlock = bagArrayList.get(md.stealFromBagIndex).get(md.stealFromListIndex);
+                Block<T> stealBlock = bagArrayList.get(md.stealFromBagIndex).get(md.stealFromListIndex);
 
-                if (stealBlock.compareAndSet(md.stealFromBlockIndex-1, item, null)) {
+                if (stealBlock.blockData.compareAndSet(md.stealFromBlockIndex-1, item, null)) {
                     return item;
                 }
             }
@@ -150,6 +170,14 @@ public class ConcurrentBag<T> implements Bag {
     private AtomicReferenceArray<T> nextStealBlock() throws CannotStealException {
         ThreadMetaData md = localMetadata.get();
 
+        //  If we are not at the end of the list, try and find a block in the current list
+        if(md.stealFromListIndex < bagArrayList.get(md.stealFromBagIndex).size()-1) {
+            while(md.stealFromListIndex < bagArrayList.get(md.stealFromBagIndex).size()-1) {
+                Block<T> block = bagArrayList.get(md.stealFromBagIndex).get(++md.stealFromListIndex);
+                if(!block.deleted.get()) return block.blockData;
+            }
+        }
+
         //  Find the next list to steal from.
         //  We need to find a non-empty list,
         // cannot guarantee that the next list has a block
@@ -157,15 +185,19 @@ public class ConcurrentBag<T> implements Bag {
         while(!found) {
             for(int i=1; i < nThreads; i++) {
                 if(!bagArrayList.get((md.stealFromBagIndex + i) % nThreads).isEmpty()) {
-                    found = true;
                     md.stealFromListIndex = 0;
                     md.stealFromBagIndex = (md.stealFromBagIndex + i) % nThreads;
-                    break;
+
+                    //  Return the first block that is not marked deleted in the list
+                    while(md.stealFromListIndex < bagArrayList.get(md.stealFromBagIndex).size()-1) {
+                        Block<T> block = bagArrayList.get(md.stealFromBagIndex).get(++md.stealFromListIndex);
+                        if(!block.deleted.get()) return block.blockData;
+                    }
                 }
             }
         }
 
-        return bagArrayList.get(md.stealFromBagIndex).get(md.stealFromListIndex);
+        return null;
     }
 
     private T nextStealItem() throws CannotStealException {
@@ -190,16 +222,15 @@ public class ConcurrentBag<T> implements Bag {
         } else {
             //  End of block
             if(md.stealFromBlockIndex >= blockSize) {
-                //  End of list
-                if(md.stealFromListIndex >= bagArrayList.get(md.stealFromBagIndex).size()-1) {
-                    stealBlock = nextStealBlock();
-                } else {
-                    stealBlock = bagArrayList.get(md.stealFromBagIndex).get(++md.stealFromListIndex);
-                }
+                //  Mark as deleted
+                bagArrayList.get(md.stealFromBagIndex).get(md.stealFromListIndex).deleted.set(true);
 
+                //  Find the next block which has not been marked as deleted
+                stealBlock = nextStealBlock();
                 md.stealFromBlockIndex = 0;
             } else {
-                stealBlock = bagArrayList.get(md.stealFromBagIndex).get(md.stealFromListIndex);
+                //  Get the current steal block
+                stealBlock = bagArrayList.get(md.stealFromBagIndex).get(md.stealFromListIndex).blockData;
             }
         }
 
@@ -259,7 +290,7 @@ public class ConcurrentBag<T> implements Bag {
                 return false;
             } else {
                 threadToIndexMap.put(threadId, nThreads++);
-                bagArrayList.add(new ArrayList<>());
+                bagArrayList.add(new ArrayList<Block<T>>());
 
                 //  Create the local metadata for this thread
                 ThreadMetaData md = new ThreadMetaData(nThreads-1);
