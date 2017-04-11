@@ -105,7 +105,8 @@ public class ConcurrentBag<T> implements Bag {
         ArrayList<AtomicReferenceArray<T>> subBag = bagArrayList.get(md.indexInBag);
         
         while (0 != 1) {
-            // no more items to remove in this block, so attempt to remove from an earlier block if it exists
+            // no more items to remove in this block, so attempt to
+            // remove from an earlier block if it exists
             if (md.indexInBlock <= 0) {
                 // first block in the list, so there's nothing else to remove
                 if (md.indexInList == 0) {
@@ -135,7 +136,8 @@ public class ConcurrentBag<T> implements Bag {
             T item = nextStealItem();
 
             if(item != null) {
-                AtomicReferenceArray<T> stealBlock = bagArrayList.get(md.stealFromBagIndex).get(md.stealFromListIndex);
+                AtomicReferenceArray<T> stealBlock = bagArrayList.get(md.stealFromBagIndex)
+                                                                 .get(md.stealFromListIndex);
 
                 if (stealBlock.compareAndSet(md.stealFromBlockIndex-1, item, null)) {
                     return item;
